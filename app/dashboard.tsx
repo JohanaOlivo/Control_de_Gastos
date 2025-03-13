@@ -11,6 +11,10 @@ export default function Dashboard() {
       <TouchableOpacity style={styles.button} onPress={() => router.push('/nueva_coleccion')}>
         <Text style={styles.buttonText}>Nueva Colección</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button} onPress={() => router.push('/ver_colecciones')}>
+        <Text style={styles.buttonText}>Ver Colecciones</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -36,6 +40,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     width: '100%',
     alignItems: 'center',
+    marginTop: 15, // Agregado para separar los botones
   },
   buttonText: {
     color: '#fff',
