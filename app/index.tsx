@@ -21,4 +21,7 @@ export default function Index() {
       <Button title="Ir al Login" onPress={navigateToLogin} />
     </View>
   );
+
+  
 }
+
