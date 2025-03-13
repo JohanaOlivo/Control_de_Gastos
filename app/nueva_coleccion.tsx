@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { firestore } from '../firebase-config';
 import { collection, addDoc } from 'firebase/firestore';
@@ -16,19 +16,13 @@ export default function NuevaColeccion() {
     const actualizarCantidadUsuarios = (cantidad: string) => {
         const numUsuarios = parseInt(cantidad) || 0;
         setCantidadUsuarios(cantidad);
-        setUsuarios(prevUsuarios =>
-            numUsuarios > prevUsuarios.length
-                ? [...prevUsuarios, ...Array(numUsuarios - prevUsuarios.length).fill('')]
-                : prevUsuarios.slice(0, numUsuarios)
-        );
+        setUsuarios(Array(numUsuarios).fill(''));
     };
 
     const actualizarNombreUsuario = (index: number, nombre: string) => {
-        setUsuarios(prevUsuarios => {
-            const nuevaLista = [...prevUsuarios];
-            nuevaLista[index] = nombre;
-            return nuevaLista;
-        });
+        const nuevaLista = [...usuarios];
+        nuevaLista[index] = nombre;
+        setUsuarios(nuevaLista);
     };
 
     const validarCampos = () => {
@@ -56,7 +50,7 @@ export default function NuevaColeccion() {
 
             Toast.show({
                 type: 'success',
-                position: 'top', // Cambié la posición a "top" para que el toast aparezca en la parte superior
+                position: 'top',
                 text1: '¡Colección creada!',
                 text2: 'La colección se guardó correctamente.',
                 visibilityTime: 3000,
@@ -75,7 +69,7 @@ export default function NuevaColeccion() {
     };
 
     return (
-        <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.container}>
             <Text style={styles.title}>Nueva Colección</Text>
 
             <TextInput
@@ -88,7 +82,7 @@ export default function NuevaColeccion() {
 
             <TextInput
                 style={[styles.input, errores.descripcion && styles.inputError]}
-                placeholder="Descripción"
+                placeholder="Descripción de la colección"
                 value={descripcion}
                 onChangeText={setDescripcion}
             />
@@ -96,25 +90,29 @@ export default function NuevaColeccion() {
 
             <TextInput
                 style={[styles.input, errores.cantidadUsuarios && styles.inputError]}
-                placeholder="Cantidad de usuarios"
+                placeholder="Número de usuarios en la colección"
                 keyboardType="numeric"
                 value={cantidadUsuarios}
                 onChangeText={actualizarCantidadUsuarios}
             />
             {errores.cantidadUsuarios && <Text style={styles.error}>{errores.cantidadUsuarios}</Text>}
 
-            <FlatList
-                data={usuarios}
-                keyExtractor={(_, index) => index.toString()}
-                renderItem={({ item, index }) => (
+            {usuarios.length > 0 && <Text style={styles.sectionTitle}>USUARIOS:</Text>}
+
+            {usuarios.map((usuario, index) => (
+                <View key={index.toString()} style={styles.usuarioContainer}>
+                    <Text style={styles.usuarioLabel}>
+                        Usuario {index + 1}:
+                    </Text>
                     <TextInput
                         style={[styles.input, errores.usuarios && styles.inputError]}
-                        placeholder={`Usuario ${index + 1}`}
-                        value={item}
+                        placeholder={`Nombre del usuario ${index + 1}`}
+                        value={usuario}
                         onChangeText={(text) => actualizarNombreUsuario(index, text)}
                     />
-                )}
-            />
+                </View>
+            ))}
+
             {errores.usuarios && <Text style={styles.error}>{errores.usuarios}</Text>}
 
             <TouchableOpacity style={styles.button} onPress={crearColeccion}>
@@ -122,33 +120,33 @@ export default function NuevaColeccion() {
             </TouchableOpacity>
 
             <Toast />
-        </View>
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        justifyContent: 'flex-start',  // Cambié el justificado para que los elementos estén más arriba
+        flexGrow: 1,
+        justifyContent: 'flex-start',
         alignItems: 'center',
         padding: 20,
         backgroundColor: '#f7f7f7',
     },
     title: {
-        fontSize: 32,  // Aumenté el tamaño de la fuente del título
+        fontSize: 28,
         fontWeight: 'bold',
-        marginBottom: 30,
+        marginBottom: 20,
         color: '#333',
     },
     input: {
-        width: '100%',
-        height: 60,  // Aumenté la altura de los inputs
+        width: '100%', // Ancho completo para que el campo sea responsivo
+        height: 50,
         borderWidth: 1,
         borderColor: '#ddd',
-        borderRadius: 12,  // Aumenté el borde
-        marginBottom: 20,  // Aumenté el margen inferior
-        paddingHorizontal: 20,  // Aumenté el relleno horizontal
-        fontSize: 18,  // Aumenté el tamaño de la fuente
+        borderRadius: 12,
+        marginBottom: 15,
+        paddingHorizontal: 15,
+        fontSize: 16,
         backgroundColor: '#fff',
     },
     inputError: {
@@ -156,21 +154,39 @@ const styles = StyleSheet.create({
     },
     error: {
         color: 'red',
-        fontSize: 14,  // Aumenté el tamaño de la fuente de los errores
-        marginBottom: 15,  // Aumenté el margen de los errores
+        fontSize: 14,
+        marginBottom: 10,
+    },
+    sectionTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#444',
+        marginTop: 20,
+        marginBottom: 10,
+        alignSelf: 'flex-start',
+    },
+    usuarioContainer: {
+        width: '100%',
+        marginBottom: 15,
+    },
+    usuarioLabel: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#444',
+        marginBottom: 5,
     },
     button: {
         backgroundColor: '#4CAF50',
-        borderRadius: 12,  // Aumenté el radio del borde
-        paddingVertical: 16,  // Aumenté el padding vertical
-        paddingHorizontal: 40,  // Aumenté el padding horizontal
-        marginTop: 30,
+        borderRadius: 12,
+        paddingVertical: 16,
+        paddingHorizontal: 40,
+        marginTop: 20,
         width: '100%',
         alignItems: 'center',
     },
     buttonText: {
         color: '#fff',
-        fontSize: 20,  // Aumenté el tamaño de la fuente del botón
+        fontSize: 18,
         fontWeight: 'bold',
     },
 });
