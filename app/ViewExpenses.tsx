@@ -5,13 +5,14 @@ import { collection, getDocs } from 'firebase/firestore';
 import { useRouter } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons'; // Importamos FontAwesome
 
-export default function VerGastos() {
-    const [gastos, setGastos] = useState<{ id: string; nombre: string; descripcion: string; miembros: string[] }[]>([]);
+export default function VerGastosGrupales() {
+    const [gastosGrupales, setGastosGrupales] = useState<{ id: string; nombre: string; descripcion: string; miembros: string[] }[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const router = useRouter();
 
-    const obtenerGastos = async () => {
+    // Función para obtener los gastos grupales desde Firestore
+    const obtenerGastosGrupales = async () => {
         try {
             setLoading(true);
             const snapshot = await getDocs(collection(firestore, 'gastos_grupales')); // Cambié la colección a 'gastos_grupales'
@@ -21,21 +22,22 @@ export default function VerGastos() {
                 descripcion: doc.data().descripcion || 'Sin descripción',
                 miembros: doc.data().miembros || [] // Lista de miembros del grupo de gastos
             }));
-            setGastos(datos);
+            setGastosGrupales(datos);
         } catch (error) {
-            console.error('Error al obtener gastos grupales:', error);
+            console.error('Error al obtener los gastos grupales:', error);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        obtenerGastos();
+        obtenerGastosGrupales();
     }, []);
 
+    // Función para manejar el refresco de los gastos
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
-        await obtenerGastos();
+        await obtenerGastosGrupales();
         setRefreshing(false);
     }, []);
 
@@ -45,9 +47,9 @@ export default function VerGastos() {
 
             {loading ? (
                 <ActivityIndicator size="large" color="#10B981" />
-            ) : gastos.length > 0 ? (
+            ) : gastosGrupales.length > 0 ? (
                 <FlatList
-                    data={gastos}
+                    data={gastosGrupales}
                     keyExtractor={(item) => item.id}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                     renderItem={({ item }) => (
