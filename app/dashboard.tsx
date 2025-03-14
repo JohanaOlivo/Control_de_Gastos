@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons'; // Importa los íconos
 import { FAB } from 'react-native-paper';
 import { useState, useEffect } from 'react';
 
@@ -19,7 +19,7 @@ export default function Dashboard() {
     if (type === 'grupo') {
       router.push('/nueva_coleccion');
     } else {
-      router.push('/nueva_coleccion_individual');
+      router.push('/Gastos_Individuales');
     }
   };
 
@@ -47,7 +47,7 @@ export default function Dashboard() {
 
       {/* Barra de navegación inferior */}
       <View className="absolute bottom-0 left-0 right-0 bg-white shadow-lg flex-row justify-around items-center p-4 border-t border-gray-200 h-16">
-        
+
         <TouchableOpacity onPress={() => router.push('/dashboard')} className="items-center">
           <Ionicons name="home-outline" size={28} color="#10B981" />
           <Text className="text-gray-600 text-xs">Inicio</Text>
@@ -78,11 +78,13 @@ export default function Dashboard() {
           <Animated.View
             style={{
               opacity: menuAnimation,
-              transform: [{ translateY: menuAnimation.interpolate({ inputRange: [0, 1], outputRange: [50, 0] }) }],
+              transform: [
+                { translateY: menuAnimation.interpolate({ inputRange: [0, 1], outputRange: [50, 0] }) },
+                { translateX: -128 },
+              ],
               position: 'absolute',
               bottom: 90,
               left: '50%',
-              transform: [{ translateX: -128 }],
               backgroundColor: 'white',
               padding: 16,
               borderRadius: 12,
@@ -90,20 +92,27 @@ export default function Dashboard() {
               shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.1,
               shadowRadius: 5,
-              width: 256,
+              width: 230,
+              pointerEvents: menuVisible ? 'auto' : 'none', // Desactiva interacciones cuando está oculto
+              display: menuVisible ? 'flex' : 'none', // Oculta completamente el menú cuando no es visible
             }}
           >
+            {/* Botón para crear colección grupal */}
             <TouchableOpacity
               onPress={() => handleCreateCollection('grupo')}
-              className="py-3 px-6 mb-2 bg-red-500 hover:bg-indigo-700 text-white rounded-lg shadow-md flex items-center justify-center transition-all duration-200"
+              className="py-2 px-4 mb-2 bg-blue-500 hover:bg-indigo-700 text-white rounded-lg shadow-md flex flex-row items-center justify-center transition-all duration-200"
             >
-              <Text className="font-semibold">Crear Colección Grupal</Text>
+              <MaterialIcons name="groups" size={20} color="white" />
+              <Text className="font-semibold text-sm ml-2">Colección Grupal</Text>
             </TouchableOpacity>
+
+            {/* Botón para crear colección individual */}
             <TouchableOpacity
               onPress={() => handleCreateCollection('individual')}
-              className="py-3 px-6 bg-green-500 hover:bg-green-700 text-white rounded-lg shadow-md flex items-center justify-center transition-all duration-200"
+              className="py-2 px-4 bg-green-500 hover:bg-green-700 text-white rounded-lg shadow-md flex flex-row items-center justify-center transition-all duration-200"
             >
-              <Text className="font-semibold">Crear Colección Individual</Text>
+              <MaterialIcons name="person" size={20} color="white" />
+              <Text className="font-semibold text-sm ml-2">Colección Individual</Text>
             </TouchableOpacity>
           </Animated.View>
         </View>
@@ -117,6 +126,7 @@ export default function Dashboard() {
           <Ionicons name="settings-outline" size={28} color="#10B981" />
           <Text className="text-gray-600 text-xs">Ajustes</Text>
         </TouchableOpacity>
+
       </View>
     </View>
   );
