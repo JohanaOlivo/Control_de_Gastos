@@ -12,7 +12,7 @@ export default function NuevaColeccion() {
     const [descripcion, setDescripcion] = useState('');
     const [cantidadUsuarios, setCantidadUsuarios] = useState('');
     const [usuarios, setUsuarios] = useState<string[]>([]);
-    const [productos, setProductos] = useState<{ nombre: string, cantidad: string, precio: string, usuario: string }[]>([]);
+    const [productos, setProductos] = useState<{ nombre: string, cantidad: string, precio: string, usuario: string, totalProducto: string }[]>([]);
     const [errores, setErrores] = useState<Record<string, string>>({});
     const router = useRouter();
 
@@ -32,14 +32,29 @@ export default function NuevaColeccion() {
 
     // Agregar un nuevo producto
     const agregarProducto = () => {
-        setProductos([...productos, { nombre: '', cantidad: '', precio: '', usuario: '' }]);
+        setProductos([...productos, { nombre: '', cantidad: '', precio: '', usuario: '', totalProducto: '0.00' }]);
     };
 
     // Actualizar un producto
     const actualizarProducto = (index: number, campo: string, valor: string) => {
         const nuevosProductos = [...productos];
         (nuevosProductos[index] as any)[campo] = valor;
+
+        // Calcular el total del producto si se actualiza cantidad o precio
+        if (campo === 'cantidad' || campo === 'precio') {
+            const cantidadNum = parseFloat(nuevosProductos[index].cantidad) || 0;
+            const precioNum = parseFloat(nuevosProductos[index].precio) || 0;
+            nuevosProductos[index].totalProducto = (cantidadNum * precioNum).toFixed(2);
+        }
+
         setProductos(nuevosProductos);
+    };
+
+    // Calcular el total general de todos los productos
+    const calcularTotalGeneral = () => {
+        return productos.reduce((total, producto) => {
+            return total + parseFloat(producto.totalProducto);
+        }, 0).toFixed(2);
     };
 
     // Validar campos del formulario
@@ -63,13 +78,17 @@ export default function NuevaColeccion() {
         if (!validarCampos()) return;
 
         try {
-            await addDoc(collection(firestore, 'colecciones'), {
+            // Agregar la colección y obtener la referencia al documento creado
+            const docRef = await addDoc(collection(firestore, 'colecciones'), {
                 nombre,
                 descripcion,
                 usuarios,
                 productos,
+                totalGeneral: calcularTotalGeneral(),
                 createdAt: new Date(),
             });
+
+            console.log("Documento agregado con ID:", docRef.id);
 
             Toast.show({
                 type: 'success',
@@ -79,8 +98,13 @@ export default function NuevaColeccion() {
                 visibilityTime: 3000,
             });
 
-            setTimeout(() => router.push('/dashboard'), 1500);
+            router.push({
+                pathname: '/resumen/[id]',
+                params: { id: docRef.id }
+            });
         } catch (error) {
+            console.error("Error al guardar la colección:", error);
+
             Toast.show({
                 type: 'error',
                 position: 'top',
@@ -90,6 +114,7 @@ export default function NuevaColeccion() {
             });
         }
     };
+
 
     return (
         <KeyboardAvoidingView
@@ -176,8 +201,17 @@ export default function NuevaColeccion() {
                                 <Picker.Item key={idx} label={user} value={user} />
                             ))}
                         </Picker>
+                        {/* Mostrar el total por producto */}
+                        <Text style={styles.totalProducto}>
+                            Total: ${producto.totalProducto}
+                        </Text>
                     </View>
                 ))}
+
+                {/* Mostrar el total general */}
+                <Text style={styles.totalGeneral}>
+                    Total General: ${calcularTotalGeneral()}
+                </Text>
 
                 {/* Botones */}
                 <TouchableOpacity style={styles.button} onPress={agregarProducto}>
@@ -205,4 +239,6 @@ const styles = StyleSheet.create({
     usuarioContainer: { marginBottom: 10 },
     usuarioLabel: { fontSize: 16, fontWeight: 'bold', marginBottom: 5, color: '#444' },
     productoContainer: { marginBottom: 15, padding: 10, backgroundColor: '#e0e0e0', borderRadius: 8 },
+    totalProducto: { fontSize: 16, fontWeight: 'bold', color: '#333', marginTop: 10 },
+    totalGeneral: { fontSize: 20, fontWeight: 'bold', color: '#4CAF50', marginTop: 20, textAlign: 'center' },
 });
