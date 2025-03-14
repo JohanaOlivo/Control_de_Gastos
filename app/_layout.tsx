@@ -10,9 +10,9 @@ export default function Layout() {
       <Stack.Screen name="dashboard" options={{ title: "Dashboard" }} />
 
 
-
-      <Stack.Screen name="Gastos_Grupales" options={{ title: "Gastos Grupales" }} />
-      <Stack.Screen name="Gastos_Individuales" options={{ title: "Gastos Individuales" }} />
+      <Stack.Screen name="ViewExpenses" options={{ title: "Tus Gastos" }} />
+      <Stack.Screen name="GastosGrupales" options={{ title: "Gastos Grupales" }} />
+      <Stack.Screen name="GastosIndividuales" options={{ title: "Gastos Individuales" }} />
 
 
 

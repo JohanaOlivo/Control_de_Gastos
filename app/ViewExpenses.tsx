@@ -5,58 +5,58 @@ import { collection, getDocs } from 'firebase/firestore';
 import { useRouter } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons'; // Importamos FontAwesome
 
-export default function VerColecciones() {
-    const [colecciones, setColecciones] = useState<{ id: string; nombre: string; descripcion: string; miembros: string[] }[]>([]);
+export default function VerGastos() {
+    const [gastos, setGastos] = useState<{ id: string; nombre: string; descripcion: string; miembros: string[] }[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const router = useRouter();
 
-    const obtenerColecciones = async () => {
+    const obtenerGastos = async () => {
         try {
             setLoading(true);
-            const snapshot = await getDocs(collection(firestore, 'colecciones'));
+            const snapshot = await getDocs(collection(firestore, 'gastos_grupales')); // Cambié la colección a 'gastos_grupales'
             const datos = snapshot.docs.map(doc => ({
                 id: doc.id,
                 nombre: doc.data().nombre || 'Sin nombre',
                 descripcion: doc.data().descripcion || 'Sin descripción',
-                miembros: doc.data().miembros || [] // Lista de miembros de la colección
+                miembros: doc.data().miembros || [] // Lista de miembros del grupo de gastos
             }));
-            setColecciones(datos);
+            setGastos(datos);
         } catch (error) {
-            console.error('Error al obtener colecciones:', error);
+            console.error('Error al obtener gastos grupales:', error);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        obtenerColecciones();
+        obtenerGastos();
     }, []);
 
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
-        await obtenerColecciones();
+        await obtenerGastos();
         setRefreshing(false);
     }, []);
 
     return (
         <View className="flex-1 p-4 bg-gray-100">
-            <Text className="text-2xl font-bold mb-4 text-center text-gray-900">Colecciones</Text>
+            <Text className="text-2xl font-bold mb-4 text-center text-gray-900">Gastos Grupales</Text>
 
             {loading ? (
                 <ActivityIndicator size="large" color="#10B981" />
-            ) : colecciones.length > 0 ? (
+            ) : gastos.length > 0 ? (
                 <FlatList
-                    data={colecciones}
+                    data={gastos}
                     keyExtractor={(item) => item.id}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                     renderItem={({ item }) => (
                         <TouchableOpacity
                             className="p-4 my-2 bg-white rounded-lg shadow-md flex-row items-center"
-                            onPress={() => router.push(`/detalle/${item.id}`)}
+                            onPress={() => router.push(`/detalle/${item.id}`)} // Cambié la navegación a la página de detalle de gastos
                         >
-                            {/* Cambié el icono por uno de FontAwesome, representando una libreta */}
-                            <FontAwesome name="book" size={40} color="#4B5563" className="mr-4" />
+                            {/* Icono representando un grupo de gastos */}
+                            <FontAwesome name="money" size={40} color="#4B5563" className="mr-4" />
 
                             <View className="flex-1">
                                 <Text className="text-lg font-bold text-gray-900">{item.nombre}</Text>
@@ -80,7 +80,7 @@ export default function VerColecciones() {
                     )}
                 />
             ) : (
-                <Text className="text-lg text-center mt-4 text-gray-500">No hay colecciones disponibles</Text>
+                <Text className="text-lg text-center mt-4 text-gray-500">No hay gastos grupales disponibles</Text>
             )}
         </View>
     );

@@ -17,9 +17,9 @@ export default function Dashboard() {
       useNativeDriver: true,
     }).start(); // Animación de salida
     if (type === 'grupo') {
-      router.push('/Gastos_Grupales');
+      router.push('/GastosGrupales');
     } else {
-      router.push('/Gastos_Individuales');
+      router.push('/GastosIndividuales');
     }
   };
 
@@ -53,9 +53,9 @@ export default function Dashboard() {
           <Text className="text-gray-600 text-xs">Inicio</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push('/ver_colecciones')} className="items-center">
+        <TouchableOpacity onPress={() => router.push('/ViewExpenses')} className="items-center">
           <MaterialIcons name="collections-bookmark" size={28} color="#10B981" />
-          <Text className="text-gray-600 text-xs">Colecciones</Text>
+          <Text className="text-gray-600 text-xs">Tus Gastos</Text>
         </TouchableOpacity>
 
         {/* Botón flotante para agregar */}

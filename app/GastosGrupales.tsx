@@ -122,7 +122,7 @@ export default function NuevaColeccion() {
             style={{ flex: 1 }}
         >
             <ScrollView contentContainerStyle={styles.container}>
-                <Text style={styles.title}>Nueva Colección</Text>
+                <Text style={styles.title}>Nuevo Gasto Grupal</Text>
 
                 {/* Campo: Nombre de la colección */}
                 <TextInput
