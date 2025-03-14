@@ -17,7 +17,7 @@ export default function Dashboard() {
       useNativeDriver: true,
     }).start(); // Animación de salida
     if (type === 'grupo') {
-      router.push('/nueva_coleccion');
+      router.push('/Gastos_Grupales');
     } else {
       router.push('/Gastos_Individuales');
     }
