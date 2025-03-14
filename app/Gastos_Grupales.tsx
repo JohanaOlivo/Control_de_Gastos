@@ -78,8 +78,8 @@ export default function NuevaColeccion() {
         if (!validarCampos()) return;
 
         try {
-            // Agregar la colección y obtener la referencia al documento creado
-            const docRef = await addDoc(collection(firestore, 'colecciones'), {
+            // Agregar el documento en la colección 'gastos_grupales'
+            const docRef = await addDoc(collection(firestore, 'gastos_grupales'), {
                 nombre,
                 descripcion,
                 usuarios,
@@ -93,8 +93,8 @@ export default function NuevaColeccion() {
             Toast.show({
                 type: 'success',
                 position: 'top',
-                text1: '¡Colección creada!',
-                text2: 'La colección y productos fueron guardados correctamente.',
+                text1: '¡Gasto grupal creado!',
+                text2: 'El gasto grupal y productos fueron guardados correctamente.',
                 visibilityTime: 3000,
             });
 
@@ -103,13 +103,13 @@ export default function NuevaColeccion() {
                 params: { id: docRef.id }
             });
         } catch (error) {
-            console.error("Error al guardar la colección:", error);
+            console.error("Error al guardar el gasto grupal:", error);
 
             Toast.show({
                 type: 'error',
                 position: 'top',
                 text1: 'Error',
-                text2: 'No se pudo guardar la colección.',
+                text2: 'No se pudo guardar el gasto grupal.',
                 visibilityTime: 3000,
             });
         }

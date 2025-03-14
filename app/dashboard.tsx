@@ -103,7 +103,7 @@ export default function Dashboard() {
               className="py-2 px-4 mb-2 bg-blue-500 hover:bg-indigo-700 text-white rounded-lg shadow-md flex flex-row items-center justify-center transition-all duration-200"
             >
               <MaterialIcons name="groups" size={20} color="white" />
-              <Text className="font-semibold text-sm ml-2">Colección Grupal</Text>
+              <Text className="font-semibold text-sm ml-2">Gasto Grupal</Text>
             </TouchableOpacity>
 
             {/* Botón para crear colección individual */}
@@ -112,7 +112,7 @@ export default function Dashboard() {
               className="py-2 px-4 bg-green-500 hover:bg-green-700 text-white rounded-lg shadow-md flex flex-row items-center justify-center transition-all duration-200"
             >
               <MaterialIcons name="person" size={20} color="white" />
-              <Text className="font-semibold text-sm ml-2">Colección Individual</Text>
+              <Text className="font-semibold text-sm ml-2">Gasto Individual</Text>
             </TouchableOpacity>
           </Animated.View>
         </View>

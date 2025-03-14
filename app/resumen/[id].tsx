@@ -7,35 +7,51 @@ import { MaterialIcons } from '@expo/vector-icons'; // Icono de Expo
 
 export default function Resumen() {
     const { id } = useLocalSearchParams();
-    const [coleccion, setColeccion] = useState<any>(null);
+    const [gastoGrupal, setGastoGrupal] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
     const fadeAnim = useState(new Animated.Value(0))[0];
 
     useEffect(() => {
-        const obtenerColeccion = async () => {
+        const obtenerGastoGrupal = async () => {
             if (!id) return;
 
-            const docRef = doc(firestore, 'colecciones', id as string);
-            const docSnap = await getDoc(docRef);
+            try {
+                const docRef = doc(firestore, 'gastos_grupales', id as string);
+                const docSnap = await getDoc(docRef);
 
-            if (docSnap.exists()) {
-                setColeccion(docSnap.data());
-                Animated.timing(fadeAnim, {
-                    toValue: 1,
-                    duration: 1000,
-                    useNativeDriver: true,
-                }).start();
-            } else {
-                console.log("No se encontró la colección.");
+                if (docSnap.exists()) {
+                    const datos = docSnap.data();
+
+                    // Calculamos el total general sumando los productos
+                    const totalGeneral = datos.productos.reduce((total: number, producto: any) => {
+                        return total + parseFloat(producto.totalProducto);
+                    }, 0);
+
+                    setGastoGrupal({ ...datos, totalGeneral });
+
+                    Animated.timing(fadeAnim, {
+                        toValue: 1,
+                        duration: 1000,
+                        useNativeDriver: true,
+                    }).start();
+                } else {
+                    console.log("No se encontró el gasto grupal.");
+                }
+            } catch (error) {
+                console.error("Error obteniendo el gasto grupal:", error);
+            } finally {
+                setLoading(false);
             }
         };
 
-        obtenerColeccion();
+        obtenerGastoGrupal();
     }, [id]);
 
-    if (!coleccion) return <Text className="text-lg text-gray-500 text-center mt-10">Cargando resumen...</Text>;
+    if (loading) return <Text className="text-lg text-gray-500 text-center mt-10">Cargando resumen...</Text>;
+    if (!gastoGrupal) return <Text className="text-lg text-red-500 text-center mt-10">No se encontró el gasto grupal.</Text>;
 
     // Calculamos el total de cada usuario
-    const totalesPorUsuario = coleccion.productos.reduce((acc: any, producto: any) => {
+    const totalesPorUsuario = gastoGrupal.productos.reduce((acc: any, producto: any) => {
         const { usuario, totalProducto } = producto;
         acc[usuario] = (acc[usuario] || 0) + parseFloat(totalProducto);
         return acc;
@@ -45,13 +61,13 @@ export default function Resumen() {
         <ScrollView className="flex-1 p-4 bg-gray-100">
             <Animated.View style={{ opacity: fadeAnim }}>
                 <View className="mb-8 px-6">
-                    <Text className="text-3xl font-bold text-gray-900 text-center mb-3">{coleccion.nombre}</Text>
-                    <Text className="text-lg text-gray-600 italic text-center mb-6">{coleccion.descripcion}</Text>
+                    <Text className="text-3xl font-bold text-gray-900 text-center mb-3">{gastoGrupal.nombre}</Text>
+                    <Text className="text-lg text-gray-600 italic text-center mb-6">{gastoGrupal.descripcion}</Text>
                 </View>
 
                 {/* Lista de usuarios con sus productos */}
-                {coleccion.usuarios.map((usuario: string, index: number) => {
-                    const productosUsuario = coleccion.productos.filter((producto: any) => producto.usuario === usuario);
+                {gastoGrupal.usuarios.map((usuario: string, index: number) => {
+                    const productosUsuario = gastoGrupal.productos.filter((producto: any) => producto.usuario === usuario);
 
                     return (
                         <View key={index} className="mb-6 p-4 bg-white rounded-lg shadow-md border-l-4 border-blue-500">
@@ -86,7 +102,7 @@ export default function Resumen() {
 
                 {/* Total General */}
                 <View className="px-6 py-4 mt-8 bg-white shadow-md rounded-lg border-t-4 border-teal-500">
-                    <Text className="text-2xl font-bold text-teal-600 text-center">Total General: ${coleccion.totalGeneral}</Text>
+                    <Text className="text-2xl font-bold text-teal-600 text-center">Total General: ${gastoGrupal.totalGeneral.toFixed(2)}</Text>
                 </View>
             </Animated.View>
         </ScrollView>
