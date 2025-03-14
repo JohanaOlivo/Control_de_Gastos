@@ -5,7 +5,7 @@ import { firestore } from '../../firebase-config';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import UsuarioItem from '../../components/usuario_item';
 
-export default function DetalleColeccion() {
+export default function DetalleGastosGrupales() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
 
@@ -15,11 +15,11 @@ export default function DetalleColeccion() {
     const [nuevoUsuario, setNuevoUsuario] = useState('');
     const [mostrandoNuevoUsuario, setMostrandoNuevoUsuario] = useState(false);
 
-    // Función para obtener los detalles de la colección
+    // Función para obtener los detalles del grupo de gastos
     useEffect(() => {
         const obtenerDetalle = async () => {
             try {
-                const docRef = doc(firestore, 'colecciones', id as string);
+                const docRef = doc(firestore, 'gastos_grupales', id as string);
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
@@ -38,23 +38,23 @@ export default function DetalleColeccion() {
         obtenerDetalle();
     }, [id]);
 
-    // Función para actualizar los detalles de la colección
-    const actualizarColeccion = async () => {
+    // Función para actualizar los detalles del grupo de gastos
+    const actualizarGastosGrupales = async () => {
         try {
-            const docRef = doc(firestore, 'colecciones', id as string);
+            const docRef = doc(firestore, 'gastos_grupales', id as string);
             await updateDoc(docRef, {
                 nombre,
                 descripcion,
                 usuarios: usuarios.map((user) => user.nombre),
             });
-            alert('Colección actualizada correctamente');
+            alert('Grupo de gastos actualizado correctamente');
             router.back();
         } catch (error) {
-            console.error('Error al actualizar colección:', error);
+            console.error('Error al actualizar grupo de gastos:', error);
         }
     };
 
-    // Función para agregar un nuevo usuario a la colección
+    // Función para agregar un nuevo usuario al grupo de gastos
     const agregarUsuario = () => {
         if (nuevoUsuario.trim()) {
             setUsuarios((prevUsuarios) => [
@@ -66,31 +66,31 @@ export default function DetalleColeccion() {
         }
     };
 
-    // Función para eliminar un usuario de la colección
+    // Función para eliminar un usuario del grupo de gastos
     const eliminarUsuario = (usuarioId: number) => {
         setUsuarios((prevUsuarios) => prevUsuarios.filter((user) => user.id !== usuarioId));
     };
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Editar Colección</Text>
+            <Text style={styles.title}>Editar Grupo de Gastos</Text>
 
-            <Text style={styles.subtitle}>Nombre de la colección</Text>
+            <Text style={styles.subtitle}>Nombre del grupo de gastos</Text>
             <TextInput
                 style={styles.input}
                 value={nombre}
                 onChangeText={setNombre}
-                placeholder="Nombre de la colección"
+                placeholder="Nombre del grupo de gastos"
             />
-            <Text style={styles.subtitle}>Descripción de la colección</Text>
+            <Text style={styles.subtitle}>Descripción del grupo de gastos</Text>
             <TextInput
                 style={styles.input}
                 value={descripcion}
                 onChangeText={setDescripcion}
-                placeholder="Descripción de la colección"
+                placeholder="Descripción del grupo de gastos"
             />
 
-            <Text style={styles.subtitle}>Usuarios en esta colección:</Text>
+            <Text style={styles.subtitle}>Usuarios en este grupo:</Text>
             <FlatList
                 data={usuarios}
                 keyExtractor={(item) => item.id.toString()}
@@ -130,7 +130,7 @@ export default function DetalleColeccion() {
 
             {/* Botón para guardar cambios */}
             <View style={styles.saveButtonContainer}>
-                <Button title="Guardar Cambios" onPress={actualizarColeccion} />
+                <Button title="Guardar Cambios" onPress={actualizarGastosGrupales} />
             </View>
         </View>
     );
