@@ -6,7 +6,7 @@ import { collection, addDoc } from 'firebase/firestore';
 import Toast from 'react-native-toast-message';
 import { Picker } from '@react-native-picker/picker';
 
-export default function NuevaColeccion() {
+export default function NuevoGastoGrupal() {
     // Estados
     const [nombre, setNombre] = useState('');
     const [descripcion, setDescripcion] = useState('');
@@ -73,8 +73,8 @@ export default function NuevaColeccion() {
         return Object.keys(erroresTemp).length === 0;
     };
 
-    // Crear la colección en Firestore
-    const crearColeccion = async () => {
+    // Crear el gasto grupal en Firestore
+    const crearGastoGrupal = async () => {
         if (!validarCampos()) return;
 
         try {
@@ -115,7 +115,6 @@ export default function NuevaColeccion() {
         }
     };
 
-
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -124,19 +123,19 @@ export default function NuevaColeccion() {
             <ScrollView contentContainerStyle={styles.container}>
                 <Text style={styles.title}>Nuevo Gasto Grupal</Text>
 
-                {/* Campo: Nombre de la colección */}
+                {/* Campo: Nombre del gasto grupal */}
                 <TextInput
                     style={[styles.input, errores.nombre && styles.inputError]}
-                    placeholder="Nombre de la colección"
+                    placeholder="Nombre del gasto grupal"
                     value={nombre}
                     onChangeText={setNombre}
                 />
                 {errores.nombre && <Text style={styles.error}>{errores.nombre}</Text>}
 
-                {/* Campo: Descripción de la colección */}
+                {/* Campo: Descripción del gasto grupal */}
                 <TextInput
                     style={[styles.input, errores.descripcion && styles.inputError]}
-                    placeholder="Descripción de la colección"
+                    placeholder="Descripción del gasto grupal"
                     value={descripcion}
                     onChangeText={setDescripcion}
                 />
@@ -145,7 +144,7 @@ export default function NuevaColeccion() {
                 {/* Campo: Cantidad de usuarios */}
                 <TextInput
                     style={[styles.input, errores.cantidadUsuarios && styles.inputError]}
-                    placeholder="Número de usuarios en la colección"
+                    placeholder="Número de usuarios en el gasto grupal"
                     keyboardType="numeric"
                     value={cantidadUsuarios}
                     onChangeText={actualizarCantidadUsuarios}
@@ -217,8 +216,8 @@ export default function NuevaColeccion() {
                 <TouchableOpacity style={styles.button} onPress={agregarProducto}>
                     <Text style={styles.buttonText}>Agregar Producto</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.button} onPress={crearColeccion}>
-                    <Text style={styles.buttonText}>Crear Colección</Text>
+                <TouchableOpacity style={styles.button} onPress={crearGastoGrupal}>
+                    <Text style={styles.buttonText}>Crear Gasto Grupal</Text>
                 </TouchableOpacity>
             </ScrollView>
         </KeyboardAvoidingView>
