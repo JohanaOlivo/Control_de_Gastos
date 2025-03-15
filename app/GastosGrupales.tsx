@@ -170,7 +170,7 @@ export default function NuevoGastoGrupal() {
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            className="flex-1 bg-gray-100"
+            className="flex-1 bg-gray-50"
         >
             <ScrollView className="px-4 py-6">
                 <Text className="text-2xl font-bold text-center text-indigo-700">Nuevo Gasto Grupal</Text>
