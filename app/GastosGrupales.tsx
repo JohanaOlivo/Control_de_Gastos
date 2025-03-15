@@ -6,6 +6,7 @@ import { collection, addDoc } from 'firebase/firestore';
 import Toast from 'react-native-toast-message';
 import RNPickerSelect from 'react-native-picker-select';
 import { BlurView } from 'expo-blur';
+import { MaterialIcons } from '@expo/vector-icons'; // Importar íconos
 
 export default function NuevoGastoGrupal() {
     // Estados
@@ -53,7 +54,20 @@ export default function NuevoGastoGrupal() {
             });
             return;
         }
-        setProductos([...productos, productoTemporal]);
+
+        // Calcular el total del producto
+        const cantidad = parseFloat(productoTemporal.cantidad);
+        const precio = parseFloat(productoTemporal.precio);
+        const totalProducto = (cantidad * precio).toFixed(2); // Multiplicar cantidad por precio
+
+        // Crear el producto con el total calculado
+        const producto = {
+            ...productoTemporal,
+            totalProducto: totalProducto,
+        };
+
+        // Agregar el producto a la lista
+        setProductos([...productos, producto]);
         cerrarModalProducto();
     };
 
@@ -87,6 +101,12 @@ export default function NuevoGastoGrupal() {
     const eliminarUsuario = (index: number) => {
         const nuevaLista = usuarios.filter((_, i) => i !== index);
         setUsuarios(nuevaLista);
+    };
+
+    // Función para eliminar un producto
+    const eliminarProducto = (index: number) => {
+        const nuevaLista = productos.filter((_, i) => i !== index);
+        setProductos(nuevaLista);
     };
 
     // Crear el gasto grupal en Firestore
@@ -184,10 +204,13 @@ export default function NuevoGastoGrupal() {
                     <View className="mt-4">
                         <Text className="font-semibold text-gray-700">Usuarios:</Text>
                         {usuarios.map((usuario, index) => (
-                            <View key={index} className="flex-row justify-between items-center p-2 bg-indigo-100 rounded-lg my-2">
-                                <Text className="text-gray-800">{usuario}</Text>
+                            <View key={index} className="flex-row justify-between items-center p-3 bg-white rounded-lg my-2 shadow-sm">
+                                <View className="flex-row items-center">
+                                    <MaterialIcons name="person" size={20} color="#4F46E5" />
+                                    <Text className="ml-2 text-gray-800">{usuario}</Text>
+                                </View>
                                 <TouchableOpacity onPress={() => eliminarUsuario(index)}>
-                                    <Text className="text-red-500">Eliminar</Text>
+                                    <MaterialIcons name="delete" size={20} color="#EF4444" />
                                 </TouchableOpacity>
                             </View>
                         ))}
@@ -196,10 +219,25 @@ export default function NuevoGastoGrupal() {
 
                 <Text className="mt-4 text-lg font-semibold text-gray-700">Productos agregados:</Text>
                 {productos.map((producto, index) => (
-                    <View key={index} className="mt-2 p-3 bg-indigo-100 rounded-lg shadow-sm">
-                        <Text className="text-gray-800">{producto.nombre} - ${producto.totalProducto}</Text>
+                    <View key={index} className="mt-2 p-3 bg-white rounded-lg shadow-sm">
+                        <View className="flex-row justify-between items-center">
+                            <View className="flex-row items-center">
+                                <MaterialIcons name="shopping-bag" size={20} color="#4F46E5" />
+                                <Text className="ml-2 text-gray-800 font-semibold">{producto.nombre}</Text>
+                            </View>
+                            <TouchableOpacity onPress={() => eliminarProducto(index)}>
+                                <MaterialIcons name="delete" size={20} color="#EF4444" />
+                            </TouchableOpacity>
+                        </View>
+                        <View className="mt-2">
+                            <Text className="text-gray-600">Cantidad: {producto.cantidad}</Text>
+                            <Text className="text-gray-600">Precio unitario: ${producto.precio}</Text>
+                            <Text className="text-gray-600">Total: ${producto.totalProducto}</Text>
+                            <Text className="text-gray-800 font-semibold">Comprado por: {producto.usuario}</Text> {/* Nuevo campo */}
+                        </View>
                     </View>
                 ))}
+
 
                 <Text className="mt-4 text-lg font-bold text-indigo-800">Total General: ${calcularTotalGeneral()}</Text>
 
