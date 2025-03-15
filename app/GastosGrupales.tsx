@@ -11,8 +11,7 @@ export default function NuevoGastoGrupal() {
     // Estados
     const [nombre, setNombre] = useState('');
     const [descripcion, setDescripcion] = useState('');
-    const [cantidadUsuarios, setCantidadUsuarios] = useState('');
-    const [usuarios, setUsuarios] = useState<string[]>([]);
+    const [usuarios, setUsuarios] = useState<string[]>([]); // Lista de usuarios
     const [productos, setProductos] = useState<{ nombre: string, cantidad: string, precio: string, usuario: string, totalProducto: string }[]>([]);
     const [errores, setErrores] = useState<Record<string, string>>({});
     const router = useRouter();
@@ -20,6 +19,10 @@ export default function NuevoGastoGrupal() {
     // Modal para agregar productos
     const [modalVisible, setModalVisible] = useState(false);
     const [productoTemporal, setProductoTemporal] = useState({ nombre: '', cantidad: '', precio: '', usuario: '', totalProducto: '0.00' });
+
+    // Modal para agregar usuario
+    const [modalUsuarioVisible, setModalUsuarioVisible] = useState(false);
+    const [nombreUsuario, setNombreUsuario] = useState('');
 
     const abrirModalProducto = () => {
         setProductoTemporal({ nombre: '', cantidad: '', precio: '', usuario: '', totalProducto: '0.00' });
@@ -30,16 +33,13 @@ export default function NuevoGastoGrupal() {
         setModalVisible(false);
     };
 
-    const actualizarProductoTemporal = (campo: string, valor: string) => {
-        const nuevoProducto = { ...productoTemporal, [campo]: valor };
+    const abrirModalUsuario = () => {
+        setNombreUsuario('');
+        setModalUsuarioVisible(true);
+    };
 
-        if (campo === 'cantidad' || campo === 'precio') {
-            const cantidadNum = parseFloat(nuevoProducto.cantidad) || 0;
-            const precioNum = parseFloat(nuevoProducto.precio) || 0;
-            nuevoProducto.totalProducto = (cantidadNum * precioNum).toFixed(2);
-        }
-
-        setProductoTemporal(nuevoProducto);
+    const cerrarModalUsuario = () => {
+        setModalUsuarioVisible(false);
     };
 
     const agregarProducto = () => {
@@ -57,17 +57,35 @@ export default function NuevoGastoGrupal() {
         cerrarModalProducto();
     };
 
-    // Actualizar la cantidad de usuarios
-    const actualizarCantidadUsuarios = (cantidad: string) => {
-        const numUsuarios = parseInt(cantidad) || 0;
-        setCantidadUsuarios(cantidad);
-        setUsuarios(Array(numUsuarios).fill(''));
+    // Función para agregar un usuario
+    const agregarUsuario = () => {
+        if (!nombreUsuario.trim()) {
+            Toast.show({
+                type: 'error',
+                position: 'top',
+                text1: 'Error',
+                text2: 'El nombre del usuario no puede estar vacío.',
+                visibilityTime: 3000,
+            });
+            return;
+        }
+        if (!usuarios.includes(nombreUsuario)) {
+            setUsuarios([...usuarios, nombreUsuario]);
+            cerrarModalUsuario();
+        } else {
+            Toast.show({
+                type: 'error',
+                position: 'top',
+                text1: 'Error',
+                text2: 'Este usuario ya ha sido agregado.',
+                visibilityTime: 3000,
+            });
+        }
     };
 
-    // Actualizar el nombre de un usuario
-    const actualizarNombreUsuario = (index: number, nombre: string) => {
-        const nuevaLista = [...usuarios];
-        nuevaLista[index] = nombre;
+    // Función para eliminar un usuario
+    const eliminarUsuario = (index: number) => {
+        const nuevaLista = usuarios.filter((_, i) => i !== index);
         setUsuarios(nuevaLista);
     };
 
@@ -120,8 +138,7 @@ export default function NuevoGastoGrupal() {
 
         if (!nombre.trim()) erroresTemp.nombre = 'El nombre es obligatorio.';
         if (!descripcion.trim()) erroresTemp.descripcion = 'La descripción es obligatoria.';
-        if (!cantidadUsuarios.trim()) erroresTemp.cantidadUsuarios = 'La cantidad de usuarios es obligatoria.';
-        if (usuarios.some(usuario => !usuario.trim())) erroresTemp.usuarios = 'Todos los usuarios deben tener un nombre.';
+        if (usuarios.length === 0) erroresTemp.usuarios = 'Debe haber al menos un usuario.';
         if (productos.some(producto => !producto.nombre.trim() || !producto.cantidad.trim() || !producto.precio.trim() || !producto.usuario.trim())) {
             erroresTemp.productos = 'Todos los productos deben tener nombre, cantidad, precio y comprador.';
         }
@@ -154,25 +171,28 @@ export default function NuevoGastoGrupal() {
                 />
                 {errores.descripcion && <Text className="text-red-500">{errores.descripcion}</Text>}
 
-                <TextInput
-                    className="mt-4 p-3 bg-white rounded-lg shadow-md border border-gray-300"
-                    placeholder="Cantidad de usuarios"
-                    keyboardType="numeric"
-                    value={cantidadUsuarios}
-                    onChangeText={actualizarCantidadUsuarios}
-                />
-                {errores.cantidadUsuarios && <Text className="text-red-500">{errores.cantidadUsuarios}</Text>}
+                {/* Botón para agregar usuario */}
+                <TouchableOpacity
+                    className="mt-4 bg-blue-600 p-3 rounded-lg"
+                    onPress={abrirModalUsuario}
+                >
+                    <Text className="text-white text-center font-semibold">Agregar Usuario</Text>
+                </TouchableOpacity>
 
-                {/* Selección de usuarios */}
-                {Array.from({ length: parseInt(cantidadUsuarios) }).map((_, index) => (
-                    <TextInput
-                        key={index}
-                        className="mt-4 p-3 bg-white rounded-lg shadow-md border border-gray-300"
-                        placeholder={`Nombre del usuario ${index + 1}`}
-                        value={usuarios[index]}
-                        onChangeText={(text) => actualizarNombreUsuario(index, text)}
-                    />
-                ))}
+                {/* Listado de usuarios */}
+                {usuarios.length > 0 && (
+                    <View className="mt-4">
+                        <Text className="font-semibold text-gray-700">Usuarios:</Text>
+                        {usuarios.map((usuario, index) => (
+                            <View key={index} className="flex-row justify-between items-center p-2 bg-indigo-100 rounded-lg my-2">
+                                <Text className="text-gray-800">{usuario}</Text>
+                                <TouchableOpacity onPress={() => eliminarUsuario(index)}>
+                                    <Text className="text-red-500">Eliminar</Text>
+                                </TouchableOpacity>
+                            </View>
+                        ))}
+                    </View>
+                )}
 
                 <Text className="mt-4 text-lg font-semibold text-gray-700">Productos agregados:</Text>
                 {productos.map((producto, index) => (
@@ -198,7 +218,39 @@ export default function NuevoGastoGrupal() {
                 </TouchableOpacity>
             </ScrollView>
 
-            {/* Modal con BlurView */}
+            {/* Modal para agregar usuario */}
+            {modalUsuarioVisible && (
+                <Modal transparent={true} animationType="fade">
+                    <BlurView intensity={20} className="flex-1 justify-center items-center bg-black/40">
+                        <View className="w-4/5 bg-white p-6 rounded-2xl shadow-lg">
+                            <Text className="text-lg font-semibold text-gray-700 text-center">Agregar Usuario</Text>
+
+                            <TextInput
+                                className="mt-4 p-3 bg-gray-100 rounded-lg border border-gray-300"
+                                placeholder="Nombre del usuario"
+                                value={nombreUsuario}
+                                onChangeText={setNombreUsuario}
+                            />
+
+                            <TouchableOpacity
+                                className="mt-4 bg-blue-600 p-3 rounded-lg"
+                                onPress={agregarUsuario}
+                            >
+                                <Text className="text-white text-center">Agregar Usuario</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                className="mt-4 p-3 rounded-lg border border-gray-300"
+                                onPress={cerrarModalUsuario}
+                            >
+                                <Text className="text-center text-red-500">Cancelar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </BlurView>
+                </Modal>
+            )}
+
+            {/* Modal con BlurView para productos */}
             {modalVisible && (
                 <Modal transparent={true} animationType="fade">
                     <BlurView intensity={20} className="flex-1 justify-center items-center bg-black/40">
@@ -209,46 +261,41 @@ export default function NuevoGastoGrupal() {
                                 className="mt-4 p-3 bg-gray-100 rounded-lg border border-gray-300"
                                 placeholder="Nombre del producto"
                                 value={productoTemporal.nombre}
-                                onChangeText={(text) => actualizarProductoTemporal('nombre', text)}
+                                onChangeText={(text) => setProductoTemporal({ ...productoTemporal, nombre: text })}
                             />
                             <TextInput
                                 className="mt-4 p-3 bg-gray-100 rounded-lg border border-gray-300"
                                 placeholder="Cantidad"
                                 keyboardType="numeric"
                                 value={productoTemporal.cantidad}
-                                onChangeText={(text) => actualizarProductoTemporal('cantidad', text)}
+                                onChangeText={(text) => setProductoTemporal({ ...productoTemporal, cantidad: text })}
                             />
                             <TextInput
                                 className="mt-4 p-3 bg-gray-100 rounded-lg border border-gray-300"
                                 placeholder="Precio"
                                 keyboardType="numeric"
                                 value={productoTemporal.precio}
-                                onChangeText={(text) => actualizarProductoTemporal('precio', text)}
+                                onChangeText={(text) => setProductoTemporal({ ...productoTemporal, precio: text })}
                             />
-
                             <RNPickerSelect
-                                onValueChange={(value) => actualizarProductoTemporal('usuario', value)}
+                                onValueChange={(value) => setProductoTemporal({ ...productoTemporal, usuario: value })}
+                                items={usuarios.map(usuario => ({ label: usuario, value: usuario }))}
+                                placeholder={{ label: 'Selecciona un usuario', value: null }}
                                 value={productoTemporal.usuario}
-                                placeholder={{ label: 'Selecciona un usuario...', value: null }}
-                                items={usuarios.map((usuario, index) => ({ label: usuario, value: usuario }))}
-                                style={{
-                                    inputAndroid: { padding: 10, borderWidth: 1, borderColor: '#ccc', borderRadius: 8, marginTop: 10 },
-                                    inputIOS: { padding: 10, borderWidth: 1, borderColor: '#ccc', borderRadius: 8, marginTop: 10 }
-                                }}
                             />
 
                             <TouchableOpacity
-                                className="mt-6 bg-blue-600 p-3 rounded-lg"
+                                className="mt-4 bg-blue-600 p-3 rounded-lg"
                                 onPress={agregarProducto}
                             >
-                                <Text className="text-white text-center font-semibold">Agregar Producto</Text>
+                                <Text className="text-white text-center">Agregar Producto</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
-                                className="mt-4 p-3 rounded-lg"
+                                className="mt-4 p-3 rounded-lg border border-gray-300"
                                 onPress={cerrarModalProducto}
                             >
-                                <Text className="text-center text-red-500">Cerrar</Text>
+                                <Text className="text-center text-red-500">Cancelar</Text>
                             </TouchableOpacity>
                         </View>
                     </BlurView>
