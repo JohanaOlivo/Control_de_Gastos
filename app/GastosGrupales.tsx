@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { firestore } from '../firebase-config';
 import { collection, addDoc } from 'firebase/firestore';
 import Toast from 'react-native-toast-message';
-import { Picker } from '@react-native-picker/picker';
+import RNPickerSelect from 'react-native-picker-select';
+import { BlurView } from 'expo-blur';
 
 export default function NuevoGastoGrupal() {
     // Estados
@@ -15,6 +16,46 @@ export default function NuevoGastoGrupal() {
     const [productos, setProductos] = useState<{ nombre: string, cantidad: string, precio: string, usuario: string, totalProducto: string }[]>([]);
     const [errores, setErrores] = useState<Record<string, string>>({});
     const router = useRouter();
+
+    // Modal para agregar productos
+    const [modalVisible, setModalVisible] = useState(false);
+    const [productoTemporal, setProductoTemporal] = useState({ nombre: '', cantidad: '', precio: '', usuario: '', totalProducto: '0.00' });
+
+    const abrirModalProducto = () => {
+        setProductoTemporal({ nombre: '', cantidad: '', precio: '', usuario: '', totalProducto: '0.00' });
+        setModalVisible(true);
+    };
+
+    const cerrarModalProducto = () => {
+        setModalVisible(false);
+    };
+
+    const actualizarProductoTemporal = (campo: string, valor: string) => {
+        const nuevoProducto = { ...productoTemporal, [campo]: valor };
+
+        if (campo === 'cantidad' || campo === 'precio') {
+            const cantidadNum = parseFloat(nuevoProducto.cantidad) || 0;
+            const precioNum = parseFloat(nuevoProducto.precio) || 0;
+            nuevoProducto.totalProducto = (cantidadNum * precioNum).toFixed(2);
+        }
+
+        setProductoTemporal(nuevoProducto);
+    };
+
+    const agregarProducto = () => {
+        if (!productoTemporal.nombre || !productoTemporal.cantidad || !productoTemporal.precio || !productoTemporal.usuario) {
+            Toast.show({
+                type: 'error',
+                position: 'top',
+                text1: 'Error',
+                text2: 'Todos los campos del producto son obligatorios.',
+                visibilityTime: 3000,
+            });
+            return;
+        }
+        setProductos([...productos, productoTemporal]);
+        cerrarModalProducto();
+    };
 
     // Actualizar la cantidad de usuarios
     const actualizarCantidadUsuarios = (cantidad: string) => {
@@ -30,31 +71,47 @@ export default function NuevoGastoGrupal() {
         setUsuarios(nuevaLista);
     };
 
-    // Agregar un nuevo producto
-    const agregarProducto = () => {
-        setProductos([...productos, { nombre: '', cantidad: '', precio: '', usuario: '', totalProducto: '0.00' }]);
-    };
+    // Crear el gasto grupal en Firestore
+    const crearGastoGrupal = async () => {
+        if (!validarCampos()) return;
 
-    // Actualizar un producto
-    const actualizarProducto = (index: number, campo: string, valor: string) => {
-        const nuevosProductos = [...productos];
-        (nuevosProductos[index] as any)[campo] = valor;
+        try {
+            // Agregar el documento en la colección 'gastos_grupales'
+            const docRef = await addDoc(collection(firestore, 'gastos_grupales'), {
+                nombre,
+                descripcion,
+                usuarios,
+                productos,
+                totalGeneral: calcularTotalGeneral(),
+                createdAt: new Date(),
+            });
 
-        // Calcular el total del producto si se actualiza cantidad o precio
-        if (campo === 'cantidad' || campo === 'precio') {
-            const cantidadNum = parseFloat(nuevosProductos[index].cantidad) || 0;
-            const precioNum = parseFloat(nuevosProductos[index].precio) || 0;
-            nuevosProductos[index].totalProducto = (cantidadNum * precioNum).toFixed(2);
+            Toast.show({
+                type: 'success',
+                position: 'top',
+                text1: '¡Gasto grupal creado!',
+                text2: 'El gasto grupal y productos fueron guardados correctamente.',
+                visibilityTime: 3000,
+            });
+
+            router.push({
+                pathname: '/resumen/[id]',
+                params: { id: docRef.id }
+            });
+        } catch (error) {
+            Toast.show({
+                type: 'error',
+                position: 'top',
+                text1: 'Error',
+                text2: 'No se pudo guardar el gasto grupal.',
+                visibilityTime: 3000,
+            });
         }
-
-        setProductos(nuevosProductos);
     };
 
     // Calcular el total general de todos los productos
     const calcularTotalGeneral = () => {
-        return productos.reduce((total, producto) => {
-            return total + parseFloat(producto.totalProducto);
-        }, 0).toFixed(2);
+        return productos.reduce((total, producto) => total + parseFloat(producto.totalProducto), 0).toFixed(2);
     };
 
     // Validar campos del formulario
@@ -73,171 +130,130 @@ export default function NuevoGastoGrupal() {
         return Object.keys(erroresTemp).length === 0;
     };
 
-    // Crear el gasto grupal en Firestore
-    const crearGastoGrupal = async () => {
-        if (!validarCampos()) return;
-
-        try {
-            // Agregar el documento en la colección 'gastos_grupales'
-            const docRef = await addDoc(collection(firestore, 'gastos_grupales'), {
-                nombre,
-                descripcion,
-                usuarios,
-                productos,
-                totalGeneral: calcularTotalGeneral(),
-                createdAt: new Date(),
-            });
-
-            console.log("Documento agregado con ID:", docRef.id);
-
-            Toast.show({
-                type: 'success',
-                position: 'top',
-                text1: '¡Gasto grupal creado!',
-                text2: 'El gasto grupal y productos fueron guardados correctamente.',
-                visibilityTime: 3000,
-            });
-
-            router.push({
-                pathname: '/resumen/[id]',
-                params: { id: docRef.id }
-            });
-        } catch (error) {
-            console.error("Error al guardar el gasto grupal:", error);
-
-            Toast.show({
-                type: 'error',
-                position: 'top',
-                text1: 'Error',
-                text2: 'No se pudo guardar el gasto grupal.',
-                visibilityTime: 3000,
-            });
-        }
-    };
-
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={{ flex: 1 }}
+            className="flex-1 bg-gray-100"
         >
-            <ScrollView contentContainerStyle={styles.container}>
-                <Text style={styles.title}>Nuevo Gasto Grupal</Text>
+            <ScrollView className="px-4 py-6">
+                <Text className="text-2xl font-bold text-center text-indigo-700">Nuevo Gasto Grupal</Text>
 
-                {/* Campo: Nombre del gasto grupal */}
                 <TextInput
-                    style={[styles.input, errores.nombre && styles.inputError]}
+                    className="mt-4 p-3 bg-white rounded-lg shadow-md border border-gray-300"
                     placeholder="Nombre del gasto grupal"
                     value={nombre}
                     onChangeText={setNombre}
                 />
-                {errores.nombre && <Text style={styles.error}>{errores.nombre}</Text>}
+                {errores.nombre && <Text className="text-red-500">{errores.nombre}</Text>}
 
-                {/* Campo: Descripción del gasto grupal */}
                 <TextInput
-                    style={[styles.input, errores.descripcion && styles.inputError]}
+                    className="mt-4 p-3 bg-white rounded-lg shadow-md border border-gray-300"
                     placeholder="Descripción del gasto grupal"
                     value={descripcion}
                     onChangeText={setDescripcion}
                 />
-                {errores.descripcion && <Text style={styles.error}>{errores.descripcion}</Text>}
+                {errores.descripcion && <Text className="text-red-500">{errores.descripcion}</Text>}
 
-                {/* Campo: Cantidad de usuarios */}
                 <TextInput
-                    style={[styles.input, errores.cantidadUsuarios && styles.inputError]}
-                    placeholder="Número de usuarios en el gasto grupal"
+                    className="mt-4 p-3 bg-white rounded-lg shadow-md border border-gray-300"
+                    placeholder="Cantidad de usuarios"
                     keyboardType="numeric"
                     value={cantidadUsuarios}
                     onChangeText={actualizarCantidadUsuarios}
                 />
-                {errores.cantidadUsuarios && <Text style={styles.error}>{errores.cantidadUsuarios}</Text>}
+                {errores.cantidadUsuarios && <Text className="text-red-500">{errores.cantidadUsuarios}</Text>}
 
-                {/* Lista de usuarios */}
-                {usuarios.length > 0 && <Text style={styles.sectionTitle}>USUARIOS:</Text>}
-                {usuarios.map((usuario, index) => (
-                    <View key={index.toString()} style={styles.usuarioContainer}>
-                        <Text style={styles.usuarioLabel}>Usuario {index + 1}:</Text>
-                        <TextInput
-                            style={[styles.input, errores.usuarios && styles.inputError]}
-                            placeholder={`Nombre del usuario ${index + 1}`}
-                            value={usuario}
-                            onChangeText={(text) => actualizarNombreUsuario(index, text)}
-                        />
-                    </View>
+                {/* Selección de usuarios */}
+                {Array.from({ length: parseInt(cantidadUsuarios) }).map((_, index) => (
+                    <TextInput
+                        key={index}
+                        className="mt-4 p-3 bg-white rounded-lg shadow-md border border-gray-300"
+                        placeholder={`Nombre del usuario ${index + 1}`}
+                        value={usuarios[index]}
+                        onChangeText={(text) => actualizarNombreUsuario(index, text)}
+                    />
                 ))}
-                {errores.usuarios && <Text style={styles.error}>{errores.usuarios}</Text>}
 
-                {/* Lista de productos */}
-                <Text style={styles.sectionTitle}>PRODUCTOS:</Text>
+                <Text className="mt-4 text-lg font-semibold text-gray-700">Productos agregados:</Text>
                 {productos.map((producto, index) => (
-                    <View key={index.toString()} style={styles.productoContainer}>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Nombre del producto"
-                            value={producto.nombre}
-                            onChangeText={(text) => actualizarProducto(index, 'nombre', text)}
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Cantidad"
-                            keyboardType="numeric"
-                            value={producto.cantidad}
-                            onChangeText={(text) => actualizarProducto(index, 'cantidad', text)}
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Precio unitario"
-                            keyboardType="numeric"
-                            value={producto.precio}
-                            onChangeText={(text) => actualizarProducto(index, 'precio', text)}
-                        />
-                        <Picker
-                            selectedValue={producto.usuario}
-                            style={styles.picker}
-                            onValueChange={(itemValue) => actualizarProducto(index, 'usuario', itemValue)}
-                        >
-                            <Picker.Item label="Seleccione un usuario" value="" />
-                            {usuarios.map((user, idx) => (
-                                <Picker.Item key={idx} label={user} value={user} />
-                            ))}
-                        </Picker>
-                        {/* Mostrar el total por producto */}
-                        <Text style={styles.totalProducto}>
-                            Total: ${producto.totalProducto}
-                        </Text>
+                    <View key={index} className="mt-2 p-3 bg-indigo-100 rounded-lg shadow-sm">
+                        <Text className="text-gray-800">{producto.nombre} - ${producto.totalProducto}</Text>
                     </View>
                 ))}
 
-                {/* Mostrar el total general */}
-                <Text style={styles.totalGeneral}>
-                    Total General: ${calcularTotalGeneral()}
-                </Text>
+                <Text className="mt-4 text-lg font-bold text-indigo-800">Total General: ${calcularTotalGeneral()}</Text>
 
-                {/* Botones */}
-                <TouchableOpacity style={styles.button} onPress={agregarProducto}>
-                    <Text style={styles.buttonText}>Agregar Producto</Text>
+                <TouchableOpacity
+                    className="mt-6 bg-indigo-600 p-3 rounded-lg shadow-md"
+                    onPress={abrirModalProducto}
+                >
+                    <Text className="text-white text-center font-semibold">Agregar Producto</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.button} onPress={crearGastoGrupal}>
-                    <Text style={styles.buttonText}>Crear Gasto Grupal</Text>
+
+                <TouchableOpacity
+                    className="mt-6 bg-green-600 p-3 rounded-lg shadow-md"
+                    onPress={crearGastoGrupal}
+                >
+                    <Text className="text-white text-center font-semibold">Crear Gasto Grupal</Text>
                 </TouchableOpacity>
             </ScrollView>
+
+            {/* Modal con BlurView */}
+            {modalVisible && (
+                <Modal transparent={true} animationType="fade">
+                    <BlurView intensity={20} className="flex-1 justify-center items-center bg-black/40">
+                        <View className="w-4/5 bg-white p-6 rounded-2xl shadow-lg">
+                            <Text className="text-lg font-semibold text-gray-700 text-center">Agregar Producto</Text>
+
+                            <TextInput
+                                className="mt-4 p-3 bg-gray-100 rounded-lg border border-gray-300"
+                                placeholder="Nombre del producto"
+                                value={productoTemporal.nombre}
+                                onChangeText={(text) => actualizarProductoTemporal('nombre', text)}
+                            />
+                            <TextInput
+                                className="mt-4 p-3 bg-gray-100 rounded-lg border border-gray-300"
+                                placeholder="Cantidad"
+                                keyboardType="numeric"
+                                value={productoTemporal.cantidad}
+                                onChangeText={(text) => actualizarProductoTemporal('cantidad', text)}
+                            />
+                            <TextInput
+                                className="mt-4 p-3 bg-gray-100 rounded-lg border border-gray-300"
+                                placeholder="Precio"
+                                keyboardType="numeric"
+                                value={productoTemporal.precio}
+                                onChangeText={(text) => actualizarProductoTemporal('precio', text)}
+                            />
+
+                            <RNPickerSelect
+                                onValueChange={(value) => actualizarProductoTemporal('usuario', value)}
+                                value={productoTemporal.usuario}
+                                placeholder={{ label: 'Selecciona un usuario...', value: null }}
+                                items={usuarios.map((usuario, index) => ({ label: usuario, value: usuario }))}
+                                style={{
+                                    inputAndroid: { padding: 10, borderWidth: 1, borderColor: '#ccc', borderRadius: 8, marginTop: 10 },
+                                    inputIOS: { padding: 10, borderWidth: 1, borderColor: '#ccc', borderRadius: 8, marginTop: 10 }
+                                }}
+                            />
+
+                            <TouchableOpacity
+                                className="mt-6 bg-blue-600 p-3 rounded-lg"
+                                onPress={agregarProducto}
+                            >
+                                <Text className="text-white text-center font-semibold">Agregar Producto</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                className="mt-4 p-3 rounded-lg"
+                                onPress={cerrarModalProducto}
+                            >
+                                <Text className="text-center text-red-500">Cerrar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </BlurView>
+                </Modal>
+            )}
         </KeyboardAvoidingView>
     );
 }
-
-// Estilos
-const styles = StyleSheet.create({
-    container: { flexGrow: 1, padding: 20, backgroundColor: '#f7f7f7' },
-    title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20, color: '#333' },
-    input: { width: '100%', height: 50, borderWidth: 1, borderRadius: 12, paddingHorizontal: 15, marginBottom: 10, backgroundColor: '#fff' },
-    inputError: { borderColor: 'red', borderWidth: 2 },
-    picker: { width: '100%', height: 50, marginBottom: 15, backgroundColor: '#fff' },
-    button: { backgroundColor: '#4CAF50', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 20 },
-    buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-    error: { color: 'red', marginBottom: 10 },
-    sectionTitle: { fontSize: 20, fontWeight: 'bold', marginTop: 20, marginBottom: 10, color: '#444' },
-    usuarioContainer: { marginBottom: 10 },
-    usuarioLabel: { fontSize: 16, fontWeight: 'bold', marginBottom: 5, color: '#444' },
-    productoContainer: { marginBottom: 15, padding: 10, backgroundColor: '#e0e0e0', borderRadius: 8 },
-    totalProducto: { fontSize: 16, fontWeight: 'bold', color: '#333', marginTop: 10 },
-    totalGeneral: { fontSize: 20, fontWeight: 'bold', color: '#4CAF50', marginTop: 20, textAlign: 'center' },
-});
