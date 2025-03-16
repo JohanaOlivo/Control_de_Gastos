@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, Text, View, TouchableOpacity, Animated } from 'react-native';
+import { ScrollView, Text, View, TouchableOpacity, Animated, Alert } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { firestore } from '../../firebase-config';
 import { doc, getDoc } from 'firebase/firestore';
@@ -13,7 +13,12 @@ export default function Resumen() {
 
     useEffect(() => {
         const obtenerGastoGrupal = async () => {
-            if (!id) return;
+            if (!id) {
+                console.log("ID no disponible");
+                return;
+            }
+
+            console.log("ID recibido:", id);
 
             try {
                 const docRef = doc(firestore, 'gastos_grupales', id as string);
@@ -21,6 +26,7 @@ export default function Resumen() {
 
                 if (docSnap.exists()) {
                     const datos = docSnap.data();
+                    console.log("Datos del documento:", datos);
 
                     // Calculamos el total general sumando los productos
                     const totalGeneral = datos.productos.reduce((total: number, producto: any) => {
@@ -36,9 +42,11 @@ export default function Resumen() {
                     }).start();
                 } else {
                     console.log("No se encontró el gasto grupal.");
+                    Alert.alert("Error", "No se encontró el gasto grupal.");
                 }
             } catch (error) {
                 console.error("Error obteniendo el gasto grupal:", error);
+                Alert.alert("Error", "Hubo un problema al obtener el gasto grupal.");
             } finally {
                 setLoading(false);
             }

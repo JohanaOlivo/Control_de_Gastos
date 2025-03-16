@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, Button, FlatList, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { firestore } from '../../firebase-config';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -72,25 +72,25 @@ export default function DetalleGastosGrupales() {
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Editar Grupo de Gastos</Text>
+        <View className="flex-1 p-5 bg-gray-100">
+            <Text className="text-2xl font-bold mb-3 text-center text-gray-700">Editar Grupo de Gastos</Text>
 
-            <Text style={styles.subtitle}>Nombre del grupo de gastos</Text>
+            <Text className="text-xl font-bold mt-4 text-gray-700">Nombre del grupo de gastos</Text>
             <TextInput
-                style={styles.input}
+                className="border border-gray-300 p-3 rounded-md bg-white text-base"
                 value={nombre}
                 onChangeText={setNombre}
                 placeholder="Nombre del grupo de gastos"
             />
-            <Text style={styles.subtitle}>Descripción del grupo de gastos</Text>
+            <Text className="text-xl font-bold mt-4 text-gray-700">Descripción del grupo de gastos</Text>
             <TextInput
-                style={styles.input}
+                className="border border-gray-300 p-3 rounded-md bg-white text-base"
                 value={descripcion}
                 onChangeText={setDescripcion}
                 placeholder="Descripción del grupo de gastos"
             />
 
-            <Text style={styles.subtitle}>Usuarios en este grupo:</Text>
+            <Text className="text-xl font-bold mt-4 text-gray-700">Usuarios en este grupo:</Text>
             <FlatList
                 data={usuarios}
                 keyExtractor={(item) => item.id.toString()}
@@ -101,9 +101,9 @@ export default function DetalleGastosGrupales() {
 
             {/* Campo para añadir el nuevo usuario */}
             {mostrandoNuevoUsuario && (
-                <View style={styles.formContainer}>
+                <View className="mt-5 mb-5">
                     <TextInput
-                        style={styles.input}
+                        className="border border-gray-300 p-3 rounded-md bg-white text-base"
                         value={nuevoUsuario}
                         onChangeText={setNuevoUsuario}
                         placeholder="Nuevo usuario"
@@ -113,79 +113,25 @@ export default function DetalleGastosGrupales() {
 
             {/* Botón para mostrar el campo de nuevo usuario */}
             <TouchableOpacity
-                style={[styles.addUserButton, mostrandoNuevoUsuario && styles.cancelButton]}
+                className={`p-3 rounded-md mt-4 items-center justify-center ${mostrandoNuevoUsuario ? 'bg-red-500' : 'bg-green-500'}`}
                 onPress={() => setMostrandoNuevoUsuario(!mostrandoNuevoUsuario)}
             >
-                <Text style={styles.addUserText}>
+                <Text className="text-white font-bold text-lg">
                     {mostrandoNuevoUsuario ? 'Cancelar' : 'Añadir Usuario'}
                 </Text>
             </TouchableOpacity>
 
             {/* Si estamos mostrando el campo de nuevo usuario, mostramos el botón para añadirlo */}
             {mostrandoNuevoUsuario && (
-                <TouchableOpacity style={styles.addUserButton} onPress={agregarUsuario}>
-                    <Text style={styles.addUserText}>Añadir Usuario</Text>
+                <TouchableOpacity className="p-3 rounded-md mt-4 bg-blue-500 items-center justify-center" onPress={agregarUsuario}>
+                    <Text className="text-white font-bold text-lg">Añadir Usuario</Text>
                 </TouchableOpacity>
             )}
 
             {/* Botón para guardar cambios */}
-            <View style={styles.saveButtonContainer}>
+            <View className="mt-8">
                 <Button title="Guardar Cambios" onPress={actualizarGastosGrupales} />
             </View>
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        backgroundColor: '#f7f7f7',
-    },
-    title: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        textAlign: 'center',
-        color: '#333',
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        padding: 10,
-        marginBottom: 10,
-        borderRadius: 8,
-        backgroundColor: '#fff',
-        fontSize: 16,
-    },
-    subtitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginTop: 20,
-        color: '#333',
-    },
-    formContainer: {
-        marginTop: 20,
-        marginBottom: 20,
-    },
-    addUserButton: {
-        backgroundColor: '#4CAF50',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 8,
-        marginTop: 15,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    cancelButton: {
-        backgroundColor: '#FF6347', // Cambiar color si está en modo "Cancelar"
-    },
-    addUserText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    saveButtonContainer: {
-        marginTop: 30,
-    },
-});

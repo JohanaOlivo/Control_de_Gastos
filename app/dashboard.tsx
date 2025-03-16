@@ -117,9 +117,9 @@ export default function Dashboard() {
           </Animated.View>
         </View>
 
-        <TouchableOpacity onPress={() => router.push('/estadisticas')} className="items-center">
+        <TouchableOpacity onPress={() => router.push('/graficosGasto')} className="items-center">
           <FontAwesome5 name="chart-bar" size={28} color="#10B981" />
-          <Text className="text-gray-600 text-xs">Estadísticas</Text>
+          <Text className="text-gray-600 text-xs">Graficos de Gastos</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push('/configuracion')} className="items-center">
