@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { View, Text, TextInput, FlatList, TouchableOpacity, ScrollView } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { firestore } from "../../firebase-config";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { User, ClipboardList, FileText, Save, Users, ShoppingCart, Edit, Trash, DollarSign, Box, CheckCircle, Plus } from "lucide-react-native"; // Íconos adicionales
+import { useState, useEffect } from 'react';
+import { View, Text, TextInput, Button, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { firestore } from '../../firebase-config';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import UsuarioItem from '../../components/usuario_item';
 
 export default function DetalleGastosGrupales() {
     const { id } = useLocalSearchParams();
@@ -101,93 +101,38 @@ export default function DetalleGastosGrupales() {
     };
 
     return (
-        <View className="flex-1 p-5 bg-gray-100">
-            {/* Título Editar Grupo de Gastos */}
-            <View className="flex-row items-center justify-center mb-5">
-                <Edit size={24} color="#FF6347" />
-                <Text className="ml-2 text-2xl font-extrabold text-red-600">Editar Grupo de Gastos</Text>
-            </View>
+        <View style={styles.container}>
+            <Text style={styles.title}>Editar Grupo de Gastos</Text>
 
-            {/* Card para Nombre y Descripción */}
-            <View className="bg-white p-4 rounded-2xl shadow mt-5">
-                <View className="flex-row items-center mb-2">
-                    <ClipboardList size={20} color="#10B981" />
-                    <Text className="ml-2 text-lg font-bold text-gray-700">Nombre del Grupo</Text>
-                </View>
-                <TextInput
-                    className="border border-gray-300 p-3 rounded-lg bg-gray-50"
-                    value={nombre}
-                    onChangeText={setNombre}
-                    placeholder="Nombre del grupo"
-                />
+            <Text style={styles.subtitle}>Nombre del grupo de gastos</Text>
+            <TextInput
+                style={styles.input}
+                value={nombre}
+                onChangeText={setNombre}
+                placeholder="Nombre del grupo de gastos"
+            />
+            <Text style={styles.subtitle}>Descripción del grupo de gastos</Text>
+            <TextInput
+                style={styles.input}
+                value={descripcion}
+                onChangeText={setDescripcion}
+                placeholder="Descripción del grupo de gastos"
+            />
 
-                <View className="flex-row items-center mt-4 mb-2">
-                    <FileText size={20} color="#10B981" />
-                    <Text className="ml-2 text-lg font-bold text-gray-700">Descripción</Text>
-                </View>
-                <TextInput
-                    className="border border-gray-300 p-3 rounded-lg bg-gray-50"
-                    value={descripcion}
-                    onChangeText={setDescripcion}
-                    placeholder="Descripción del grupo"
-                />
-            </View>
+            <Text style={styles.subtitle}>Usuarios en este grupo:</Text>
+            <FlatList
+                data={usuarios}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                    <UsuarioItem usuario={item} onEliminar={eliminarUsuario} />
+                )}
+            />
 
-            {/* Título de Usuarios */}
-            <View className="flex-row items-center mt-5">
-                <Users size={20} color="#10B981" />
-                <Text className="ml-2 text-lg font-extrabold text-gray-700">Usuarios:</Text>
-            </View>
-
-            {/* Contenedor de Usuarios con altura fija y scroll */}
-            <View className="bg-white p-4 rounded-2xl shadow mt-3" style={{ height: 200 }}>
-                {/* Lista de usuarios */}
-                <FlatList
-                    data={usuarios}
-                    keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => (
-                        <View className="flex-row items-center justify-between mb-3">
-                            <View className="flex-row items-center">
-                                <User size={20} color="#10B981" />
-                                {item.isEditing ? (
-                                    <TextInput
-                                        className="ml-3 text-lg font-medium text-gray-700 w-48 border border-gray-300 p-2 rounded-lg"
-                                        value={item.newName}
-                                        onChangeText={(text) => manejarCambioNombre(item.id, text)}
-                                    />
-                                ) : (
-                                    <Text className="ml-3 text-lg font-medium text-gray-700">{item.nombre}</Text>
-                                )}
-                            </View>
-                            <View className="flex-row items-center">
-                                {item.isEditing ? (
-                                    <>
-                                        <TouchableOpacity onPress={() => guardarEdicion(item.id)} className="mr-3">
-                                            <Save size={20} color="#10B981" />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => cancelarEdicion(item.id)}>
-                                            <Text className="text-red-500">Cancelar</Text>
-                                        </TouchableOpacity>
-                                    </>
-                                ) : (
-                                    <>
-                                        <TouchableOpacity onPress={() => editarUsuario(item.id)} className="mr-3">
-                                            <Edit size={20} color="#ff5b14" />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => eliminarUsuario(item.id)}>
-                                            <Trash size={20} color="#FF6347" />
-                                        </TouchableOpacity>
-                                    </>
-                                )}
-                            </View>
-                        </View>
-                    )}
-                />
-
-                {/* Campo para agregar un nuevo usuario y el botón "+" */}
-                <View className="flex-row items-center mt-3">
+            {/* Campo para añadir el nuevo usuario */}
+            {mostrandoNuevoUsuario && (
+                <View style={styles.formContainer}>
                     <TextInput
-                        className="border border-gray-300 p-3 rounded-lg bg-gray-50 flex-1"
+                        style={styles.input}
                         value={nuevoUsuario}
                         onChangeText={setNuevoUsuario}
                         placeholder="Nuevo usuario"
@@ -235,12 +180,25 @@ export default function DetalleGastosGrupales() {
 
             {/* Botón de Guardar Cambios */}
             <TouchableOpacity
-                className="mt-6 p-3 rounded-lg bg-indigo-600 flex-row items-center justify-center"
-                onPress={actualizarGastosGrupales}
+                style={[styles.addUserButton, mostrandoNuevoUsuario && styles.cancelButton]}
+                onPress={() => setMostrandoNuevoUsuario(!mostrandoNuevoUsuario)}
             >
-                <Save size={20} color="white" />
-                <Text className="text-white font-semibold text-center ml-2">Guardar Cambios</Text>
+                <Text style={styles.addUserText}>
+                    {mostrandoNuevoUsuario ? 'Cancelar' : 'Añadir Usuario'}
+                </Text>
             </TouchableOpacity>
+
+            {/* Si estamos mostrando el campo de nuevo usuario, mostramos el botón para añadirlo */}
+            {mostrandoNuevoUsuario && (
+                <TouchableOpacity style={styles.addUserButton} onPress={agregarUsuario}>
+                    <Text style={styles.addUserText}>Añadir Usuario</Text>
+                </TouchableOpacity>
+            )}
+
+            {/* Botón para guardar cambios */}
+            <View style={styles.saveButtonContainer}>
+                <Button title="Guardar Cambios" onPress={actualizarGastosGrupales} />
+            </View>
         </View>
     );
 }
