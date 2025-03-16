@@ -42,7 +42,7 @@ export default function Dashboard() {
   }, [menuVisible]);
 
   return (
-    <View className="flex-1 justify-center items-center p-5 bg-blue-50">
+    <View className="flex-1 justify-center items-center p-5 bg-gray-100">
       <Text className="text-2xl font-bold text-gray-800 mb-8">Bienvenido al Dashboard</Text>
 
       {/* Barra de navegación inferior */}
@@ -117,7 +117,7 @@ export default function Dashboard() {
           </Animated.View>
         </View>
 
-        <TouchableOpacity onPress={() => router.push('/estadisticas')} className="items-center">
+        <TouchableOpacity onPress={() => router.push('/graficosGasto')} className="items-center">
           <FontAwesome5 name="chart-bar" size={28} color="#10B981" />
           <Text className="text-gray-600 text-xs">Estadísticas</Text>
         </TouchableOpacity>
