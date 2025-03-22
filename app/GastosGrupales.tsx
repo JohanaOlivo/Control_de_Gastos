@@ -8,6 +8,8 @@ import RNPickerSelect from 'react-native-picker-select';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons'; // Importar íconos
 
+
+
 export default function NuevoGastoGrupal() {
     // Estados
     const [nombre, setNombre] = useState('');
