@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons'; // Importa los íconos
 import { FAB } from 'react-native-paper';
@@ -43,11 +43,29 @@ export default function Dashboard() {
 
   return (
     <View className="flex-1 justify-center items-center p-5 bg-gray-100">
-      <Text className="text-2xl font-bold text-gray-800 mb-8">Bienvenido al Dashboard</Text>
+      {/* Imagen de fondo o ilustración */}
+      <Image source={{ uri: 'https://your-image-url.com/image.jpg' }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' }} resizeMode="cover" />
+
+      {/* Contenedor de bienvenida */}
+      <View className="z-10 mb-8 text-center">
+        <Text className="text-3xl font-bold text-gray-800 mb-4">Bienvenido al Dashboard</Text>
+        <Text className="text-lg text-gray-600">Aquí puedes gestionar tus gastos individuales y grupales</Text>
+      </View>
+
+      {/* Tarjetas informativas */}
+      <View className="flex-row justify-between w-full mb-8 z-10">
+        <View className="bg-white shadow-md rounded-lg p-4 flex-1 mr-2">
+          <Text className="text-gray-600 text-sm">Total de Gastos</Text>
+          <Text className="text-xl font-semibold text-green-500">$3,500</Text>
+        </View>
+        <View className="bg-white shadow-md rounded-lg p-4 flex-1 ml-2">
+          <Text className="text-gray-600 text-sm">Gastos Pendientes</Text>
+          <Text className="text-xl font-semibold text-yellow-500">$1,200</Text>
+        </View>
+      </View>
 
       {/* Barra de navegación inferior */}
-      <View className="absolute bottom-0 left-0 right-0 bg-white shadow-lg flex-row justify-around items-center p-4 border-t border-gray-200 h-16">
-
+      <View className="absolute bottom-0 left-0 right-0 bg-white shadow-lg flex-row justify-around items-center p-4 border-t border-gray-200 h-16 z-10">
         <TouchableOpacity onPress={() => router.push('/dashboard')} className="items-center">
           <Ionicons name="home-outline" size={28} color="#10B981" />
           <Text className="text-gray-600 text-xs">Inicio</Text>
@@ -97,7 +115,6 @@ export default function Dashboard() {
               display: menuVisible ? 'flex' : 'none', // Oculta completamente el menú cuando no es visible
             }}
           >
-            {/* Botón para crear colección grupal */}
             <TouchableOpacity
               onPress={() => handleCreateCollection('grupo')}
               className="py-2 px-4 mb-2 bg-blue-500 hover:bg-indigo-700 text-white rounded-lg shadow-md flex flex-row items-center justify-center transition-all duration-200"
@@ -106,7 +123,6 @@ export default function Dashboard() {
               <Text className="font-semibold text-sm ml-2">Gasto Grupal</Text>
             </TouchableOpacity>
 
-            {/* Botón para crear colección individual */}
             <TouchableOpacity
               onPress={() => handleCreateCollection('individual')}
               className="py-2 px-4 bg-green-500 hover:bg-green-700 text-white rounded-lg shadow-md flex flex-row items-center justify-center transition-all duration-200"
@@ -126,7 +142,6 @@ export default function Dashboard() {
           <Ionicons name="settings-outline" size={28} color="#10B981" />
           <Text className="text-gray-600 text-xs">Ajustes</Text>
         </TouchableOpacity>
-
       </View>
     </View>
   );
